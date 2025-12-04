@@ -11,6 +11,8 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
+    secret: process.env.NEXTAUTH_SECRET,
+    debug: process.env.NODE_ENV === "development",
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -22,7 +24,7 @@ export const authOptions: NextAuthOptions = {
                 if (!credentials?.username || !credentials?.password) return null
 
                 const parsedCredentials = z
-                    .object({ username: z.string(), password: z.string().min(6) })
+                    .object({ username: z.string(), password: z.string().min(1) })
                     .safeParse(credentials)
 
                 if (parsedCredentials.success) {

@@ -37,6 +37,26 @@ This project uses **Prisma** with **PostgreSQL**.
 5.  **Seed Data** (Optional):
     You can create a seed script to populate initial data.
 
+6.  **Create Admin User**:
+    Run the following command to create an admin user:
+    ```bash
+    pnpm dlx tsx scripts/create-admin.ts <username> <password>
+    ```
+    Example:
+    ```bash
+    pnpm dlx tsx scripts/create-admin.ts admin password123
+    ```
+
+6.  **Create Admin User**:
+    Run the following command to create an admin user:
+    ```bash
+    npx tsx scripts/create-admin.ts <username> <password>
+    ```
+    Example:
+    ```bash
+    npx tsx scripts/create-admin.ts admin password123
+    ```
+
 ## Useful Commands
 
 -   `pnpm dlx prisma studio`: Open Prisma Studio to view and edit data.
