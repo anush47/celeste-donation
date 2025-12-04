@@ -2,15 +2,27 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
+import { apiClient } from "@/lib/api-client"
 
-interface DonationCounterProps {
-  total: number
-  donors: number
-}
+export function DonationCounter() {
+  const [total, setTotal] = useState(0)
+  const [donors, setDonors] = useState(0)
+  const [displayTotal, setDisplayTotal] = useState(0)
 
-export function DonationCounter({ total, donors }: DonationCounterProps) {
-  const [displayTotal, setDisplayTotal] = useState(total)
-  const [displayDonors, setDisplayDonors] = useState(donors)
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await apiClient.getTotalDonations()
+        if (data.success && data.data) {
+          setTotal(data.data.total)
+          setDonors(data.data.donors)
+        }
+      } catch (error) {
+        console.error("Failed to fetch donation stats:", error)
+      }
+    }
+    fetchData()
+  }, [])
 
   useEffect(() => {
     if (displayTotal !== total) {
@@ -32,12 +44,6 @@ export function DonationCounter({ total, donors }: DonationCounterProps) {
     }
   }, [total, displayTotal])
 
-  useEffect(() => {
-    if (displayDonors !== donors) {
-      setDisplayDonors(donors)
-    }
-  }, [donors, displayDonors])
-
   return (
     <div className="bg-secondary/50 border-b border-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -50,7 +56,7 @@ export function DonationCounter({ total, donors }: DonationCounterProps) {
           </Card>
           <Card className="p-6 bg-card">
             <p className="text-muted-foreground text-sm mb-2">Number of Donors</p>
-            <p className="text-4xl font-bold text-accent">{displayDonors.toLocaleString()}</p>
+            <p className="text-4xl font-bold text-accent">{donors.toLocaleString()}</p>
           </Card>
         </div>
       </div>

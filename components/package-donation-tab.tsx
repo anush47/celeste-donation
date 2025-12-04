@@ -1,11 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Check } from "lucide-react"
 import { Confetti } from "@/components/confetti"
+import { apiClient } from "@/lib/api-client"
+import { DonationType } from "@prisma/client"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface PackageItem {
   name: string
@@ -23,78 +27,79 @@ interface Package {
   total: number
 }
 
-// Sample packages with hardcoded data
-const PACKAGES: Package[] = [
-  {
-    id: "pkg_1",
-    name: "Family Food Kit",
-    description: "Essential food items sufficient for a family of 4-5 for one month",
-    imageUrl: "/food-relief-package.jpg",
-    items: [
-      { name: "Rice (5kg)", unitPrice: 1500, quantity: 1, imageUrl: "/bowl-of-steamed-rice.png" },
-      { name: "Canned Food Pack", unitPrice: 600, quantity: 2, imageUrl: "/canned-food.jpg" },
-      { name: "Cooking Oil (2L)", unitPrice: 1200, quantity: 1, imageUrl: "/cooking-oil.jpg" },
-    ],
-    total: 4900,
-  },
-  {
-    id: "pkg_2",
-    name: "Water & Hygiene Kit",
-    description: "Clean water and essential hygiene products for emergency response",
-    imageUrl: "/water-hygiene-kit.jpg",
-    items: [
-      { name: "Drinking Water (20L)", unitPrice: 2000, quantity: 2, imageUrl: "/clear-water-ripples.png" },
-      { name: "Soap & Sanitizer Set", unitPrice: 800, quantity: 3, imageUrl: "/hygiene.jpg" },
-      { name: "First Aid Kit", unitPrice: 1500, quantity: 1, imageUrl: "/first-aid.jpg" },
-    ],
-    total: 8300,
-  },
-  {
-    id: "pkg_3",
-    name: "Medical Supplies Kit",
-    description: "Essential medical and health supplies for affected families",
-    imageUrl: "/medical-supplies.jpg",
-    items: [
-      { name: "Medications & Antibiotics", unitPrice: 3000, quantity: 1, imageUrl: "/medicines.jpg" },
-      { name: "Medical Equipment", unitPrice: 2500, quantity: 1, imageUrl: "/medical-team-collaboration.png" },
-      { name: "Vitamin Supplements", unitPrice: 1000, quantity: 2, imageUrl: "/various-supplements.png" },
-    ],
-    total: 8500,
-  },
-]
-
 interface PackageDonationTabProps {
   onDonate: (amount: number) => void
 }
 
 export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
+  const [packages, setPackages] = useState<Package[]>([])
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [donorInfo, setDonorInfo] = useState({ name: "", phone: "", email: "" })
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  useEffect(() => {
+    async function fetchPackages() {
+      try {
+        const response = await apiClient.getPackages()
+        if (response.success && response.data) {
+          setPackages(response.data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch packages:", error)
+      }
+    }
+    fetchPackages()
+  }, [])
 
   const handleSelectPackage = (pkg: Package) => {
     setSelectedPackage(pkg)
     setDetailsOpen(true)
-    setCurrentImageIndex(0)
     setQuantity(1)
   }
 
-  const handleDonate = () => {
-    if (selectedPackage) {
-      setShowConfetti(true)
-      const totalAmount = selectedPackage.total * quantity
-      onDonate(totalAmount)
-      setShowSuccess(true)
-      setDetailsOpen(false)
+  const handleDonate = async () => {
+    if (!selectedPackage) return
+    if (!donorInfo.name || !donorInfo.phone) {
+      alert("Please fill in required fields")
+      return
+    }
 
-      setTimeout(() => {
-        setShowSuccess(false)
-        setShowConfetti(false)
-        setSelectedPackage(null)
-      }, 3000)
+    setIsProcessing(true)
+    try {
+      const totalAmount = selectedPackage.total * quantity
+      const response = await apiClient.createPayment({
+        amount: totalAmount,
+        donorName: donorInfo.name,
+        donorPhone: donorInfo.phone,
+        donorEmail: donorInfo.email,
+        type: "PACKAGE" as DonationType,
+        packageId: selectedPackage.id,
+      })
+
+      if (response.success) {
+        setShowConfetti(true)
+        onDonate(totalAmount)
+        setShowSuccess(true)
+        setDetailsOpen(false)
+
+        setTimeout(() => {
+          setShowSuccess(false)
+          setShowConfetti(false)
+          setSelectedPackage(null)
+          setDonorInfo({ name: "", phone: "", email: "" })
+        }, 3000)
+      } else {
+        alert(response.message || "Donation failed")
+      }
+    } catch (error) {
+      console.error("Error processing donation:", error)
+      alert("An error occurred")
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -130,7 +135,7 @@ export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
 
       {/* Package Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PACKAGES.map((pkg, idx) => (
+        {packages.map((pkg, idx) => (
           <Card
             key={pkg.id}
             className="overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4"
@@ -230,6 +235,25 @@ export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
                 </div>
               </div>
 
+              {/* Donor Details */}
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-semibold">Your Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name *</Label>
+                    <Input id="name" value={donorInfo.name} onChange={e => setDonorInfo({ ...donorInfo, name: e.target.value })} placeholder="Your Name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone *</Label>
+                    <Input id="phone" value={donorInfo.phone} onChange={e => setDonorInfo({ ...donorInfo, phone: e.target.value })} placeholder="Your Phone" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" value={donorInfo.email} onChange={e => setDonorInfo({ ...donorInfo, email: e.target.value })} placeholder="Your Email" />
+                  </div>
+                </div>
+              </div>
+
               {/* Total */}
               <div className="bg-secondary/50 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
@@ -247,9 +271,10 @@ export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
                 </Button>
                 <Button
                   onClick={handleDonate}
+                  disabled={isProcessing}
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:shadow-lg active:scale-95"
                 >
-                  Donate This Package
+                  {isProcessing ? "Processing..." : "Donate This Package"}
                 </Button>
               </div>
             </div>

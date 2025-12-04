@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, Check } from "lucide-react"
 import { Confetti } from "@/components/confetti"
+import { apiClient } from "@/lib/api-client"
+import { DonationType } from "@prisma/client"
 
 const PREDEFINED_AMOUNTS = [100, 200, 500, 1000, 5000]
 
@@ -22,6 +24,7 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
   const [donorInfo, setDonorInfo] = useState({ name: "", phone: "", email: "" })
   const [errors, setErrors] = useState<string[]>([])
   const [showConfetti, setShowConfetti] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const amount = selectedAmount || (customAmount ? Number.parseInt(customAmount) : 0)
 
@@ -47,20 +50,38 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
   const handleDonate = async () => {
     if (!validateForm()) return
 
-    setShowConfetti(true)
+    setIsProcessing(true)
+    try {
+      const response = await apiClient.createPayment({
+        amount,
+        donorName: donorInfo.name,
+        donorPhone: donorInfo.phone,
+        donorEmail: donorInfo.email,
+        type: "CASH" as DonationType,
+      })
 
-    // Simulate payment processing
-    setShowForm(false)
-    setShowSuccess(true)
-    onDonate(amount)
+      if (response.success) {
+        setShowConfetti(true)
+        setShowForm(false)
+        setShowSuccess(true)
+        onDonate(amount)
 
-    setTimeout(() => {
-      setShowSuccess(false)
-      setShowConfetti(false)
-      setSelectedAmount(null)
-      setCustomAmount("")
-      setDonorInfo({ name: "", phone: "", email: "" })
-    }, 3000)
+        setTimeout(() => {
+          setShowSuccess(false)
+          setShowConfetti(false)
+          setSelectedAmount(null)
+          setCustomAmount("")
+          setDonorInfo({ name: "", phone: "", email: "" })
+        }, 3000)
+      } else {
+        setErrors([response.message || "Donation failed"])
+      }
+    } catch (error) {
+      console.error("Error processing donation:", error)
+      setErrors(["An error occurred. Please try again."])
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   if (showSuccess) {
@@ -101,11 +122,10 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
                 setSelectedAmount(amt)
                 setCustomAmount("")
               }}
-              className={`p-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-                selectedAmount === amt
+              className={`p-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${selectedAmount === amt
                   ? "bg-primary text-primary-foreground shadow-lg scale-105"
                   : "bg-muted text-foreground hover:bg-secondary border border-border"
-              }`}
+                }`}
               style={{
                 animationDelay: `${idx * 50}ms`,
               }}
@@ -210,9 +230,10 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
             </Button>
             <Button
               onClick={handleDonate}
+              disabled={isProcessing}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:shadow-lg active:scale-95"
             >
-              Complete Donation
+              {isProcessing ? "Processing..." : "Complete Donation"}
             </Button>
           </div>
         </Card>

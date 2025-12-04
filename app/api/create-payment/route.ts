@@ -1,5 +1,6 @@
 import { createDonation, processPayment } from "@/services/donation-service"
 import { DonationType } from "@prisma/client"
+import { apiResponse } from "@/lib/api-response"
 
 export async function POST(request: Request) {
     try {
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
 
         // Validate required fields
         if (!amount || !donorName || !donorPhone || !type) {
-            return Response.json({ error: "Missing required fields" }, { status: 400 })
+            return apiResponse.error("Missing required fields", 400)
         }
 
         // Process payment (mock)
@@ -25,11 +26,14 @@ export async function POST(request: Request) {
                 packageId,
             })
 
-            return Response.json({ success: true, donation, transactionId: paymentResult.transactionId })
+            return apiResponse.success(
+                { donation, transactionId: paymentResult.transactionId },
+                "Donation successful",
+            )
         } else {
-            return Response.json({ error: "Payment failed" }, { status: 500 })
+            return apiResponse.error("Payment failed", 500)
         }
     } catch (error) {
-        return Response.json({ error: "Internal server error" }, { status: 500 })
+        return apiResponse.error("Internal server error", 500)
     }
 }
