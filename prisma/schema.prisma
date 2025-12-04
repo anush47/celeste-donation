@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DonationPackage {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  total       Float
+  items       PackageItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PackageItem {
+  id                String          @id @default(cuid())
+  name              String
+  unitPrice         Float
+  quantity          Int
+  imageUrl          String
+  donationPackageId String
+  donationPackage   DonationPackage @relation(fields: [donationPackageId], references: [id])
+}
+
+model HelpRequest {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  description String
+  approved    Boolean  @default(false)
+  needTypes   String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Donation {
+  id        String   @id @default(cuid())
+  amount    Float
+  donorName String
+  donorPhone String
+  donorEmail String?
+  type      DonationType
+  packageId String?
+  createdAt DateTime @default(now())
+}
+
+enum DonationType {
+  CASH
+  PACKAGE
+}
