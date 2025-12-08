@@ -42,7 +42,7 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
     const newErrors: string[] = []
     if (!donorInfo.name.trim()) newErrors.push("Name is required")
     if (!donorInfo.phone.trim()) newErrors.push("Phone number is required")
-    if (amount < 1000) newErrors.push("Minimum donation is 1000 LKR")
+    if (!selectedAmount && amount < 1000) newErrors.push("Minimum donation is 1000 LKR")
     setErrors(newErrors)
     return newErrors.length === 0
   }
@@ -123,8 +123,8 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
                 setCustomAmount("")
               }}
               className={`p-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${selectedAmount === amt
-                  ? "bg-primary text-primary-foreground shadow-lg scale-105"
-                  : "bg-muted text-foreground hover:bg-secondary border border-border"
+                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                : "bg-muted text-foreground hover:bg-secondary border border-border"
                 }`}
               style={{
                 animationDelay: `${idx * 50}ms`,
