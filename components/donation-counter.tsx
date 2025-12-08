@@ -14,7 +14,8 @@ export function DonationCounter() {
       try {
         const data = await apiClient.getTotalDonations()
         if (data.success && data.data) {
-          setTotal(data.data.total)
+          // Fix: API now returns detailed stats object
+          setTotal(data.data.totalAmount || data.data.total || 0)
           setDonors(data.data.donors)
         }
       } catch (error) {

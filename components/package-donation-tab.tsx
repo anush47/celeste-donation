@@ -25,6 +25,7 @@ interface Package {
   imageUrl: string
   items: PackageItem[]
   total: number
+  donationCount?: number
 }
 
 interface PackageDonationTabProps {
@@ -86,6 +87,16 @@ export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
         setShowSuccess(true)
         setDetailsOpen(false)
 
+        // Refresh packages to update count
+        try {
+          const pkgResponse = await apiClient.getPackages()
+          if (pkgResponse.success && pkgResponse.data) {
+            setPackages(pkgResponse.data)
+          }
+        } catch (e) {
+          console.error("Failed to refresh packages", e)
+        }
+
         setTimeout(() => {
           setShowSuccess(false)
           setShowConfetti(false)
@@ -146,7 +157,14 @@ export function PackageDonationTab({ onDonate }: PackageDonationTabProps) {
             <img src={pkg.imageUrl || "/placeholder.svg"} alt={pkg.name} className="w-full h-48 object-cover" />
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="font-semibold text-lg text-foreground">{pkg.name}</h3>
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-lg text-foreground">{pkg.name}</h3>
+                  {pkg.donationCount !== undefined && pkg.donationCount > 0 && (
+                    <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+                      {pkg.donationCount} donated
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground mt-2">{pkg.description}</p>
               </div>
 

@@ -11,13 +11,13 @@ export const apiClient = {
     async getPackages() {
         const res = await fetch("/api/packages")
         const data = await res.json()
-        return data as any[] // Replace with proper type
+        return data as ApiResponse<any[]>
     },
 
     async getHelpRequests(approved: boolean = true) {
         const res = await fetch(`/api/requests?approved=${approved}`)
         const data = await res.json()
-        return data as any[] // Replace with proper type
+        return data as ApiResponse<any[]>
     },
 
     async submitHelpRequest(data: any) {
@@ -32,7 +32,7 @@ export const apiClient = {
     async getTotalDonations() {
         const res = await fetch("/api/donations/total")
         const data = await res.json()
-        return data as { total: number; donors: number }
+        return data as ApiResponse<{ totalAmount: number; cashTotal: number; packageCount: number; packageTotal: number; donors: number; total?: number }>
     },
 
     async createPayment(data: {

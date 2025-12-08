@@ -13,6 +13,7 @@ model DonationPackage {
   imageUrl    String
   total       Float
   items       PackageItem[]
+  donations   Donation[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -40,14 +41,15 @@ model HelpRequest {
 }
 
 model Donation {
-  id        String   @id @default(cuid())
-  amount    Float
-  donorName String
-  donorPhone String
-  donorEmail String?
-  type      DonationType
-  packageId String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  amount        Float
+  donorName     String
+  donorPhone    String
+  donorEmail    String?
+  type          DonationType
+  packageId     String?
+  donationPackage DonationPackage? @relation(fields: [packageId], references: [id])
+  createdAt     DateTime @default(now())
 }
 
 enum DonationType {

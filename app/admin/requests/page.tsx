@@ -1,43 +1,117 @@
 import { getHelpRequests } from "@/services/request-service"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import prisma from "@/lib/db"
+import { revalidatePath } from "next/cache"
+import { Check, Clock, MapPin } from "lucide-react"
 
 export default async function RequestsPage() {
     const requests = await getHelpRequests()
 
+    async function approveRequest(formData: FormData) {
+        "use server"
+        const id = formData.get("id") as string
+        if (id) {
+            await prisma.helpRequest.update({
+                where: { id },
+                data: { approved: true },
+            })
+            revalidatePath("/admin/requests")
+        }
+    }
+
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Help Requests</h1>
-            <div className="grid gap-4">
-                {requests.map((request) => (
-                    <Card key={request.id}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-lg font-medium">{request.name}</CardTitle>
-                            <Badge variant={request.approved ? "default" : "secondary"}>
-                                {request.approved ? "Approved" : "Pending"}
-                            </Badge>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground mb-2">{request.location}</p>
-                            <p className="mb-4">{request.description}</p>
-                            <div className="flex gap-2">
-                                {!request.approved && (
-                                    <form
-                                        action={async () => {
-                                            "use server"
-                                            // Call API to approve
-                                            // implementation details in next step
-                                        }}
-                                    >
-                                        <Button size="sm">Approve</Button>
-                                    </form>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+            <div>
+                <h1 className="text-3xl font-bold">Help Requests</h1>
+                <p className="text-muted-foreground">Manage and approve assistance requests from the community.</p>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Requests</CardTitle>
+                    <CardDescription>A list of all help requests submitted by users.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Name / Phone</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Needs</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {requests.map((request) => (
+                                <TableRow key={request.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-muted-foreground" />
+                                            {new Date(request.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{request.name}</span>
+                                            <span className="text-xs text-muted-foreground">{request.phone}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                                            {request.location}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {request.needTypes.map((need) => (
+                                                <Badge key={need} variant="outline" className="text-xs">
+                                                    {need}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={request.approved ? "default" : "secondary"}>
+                                            {request.approved ? "Approved" : "Pending"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {!request.approved && (
+                                            <form action={approveRequest}>
+                                                <input type="hidden" name="id" value={request.id} />
+                                                <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700">
+                                                    <Check className="w-4 h-4 mr-1" />
+                                                    Approve
+                                                </Button>
+                                            </form>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {requests.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        No help requests found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     )
 }
