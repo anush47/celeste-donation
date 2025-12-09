@@ -46,18 +46,18 @@ export function DonationCounter() {
   }, [total, displayTotal])
 
   return (
-    <div className="bg-secondary/50 border-b border-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="p-6 bg-card">
-            <p className="text-muted-foreground text-sm mb-2">Total Donated</p>
-            <p className="text-4xl font-bold text-primary">
-              {displayTotal.toLocaleString()} <span className="text-lg text-foreground">LKR</span>
+    <div>
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 lg:gap-6 xl:gap-8">
+          <Card className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 bg-card">
+            <p className="text-muted-foreground text-[10px] sm:text-xs md:text-sm mb-0.5 sm:mb-1 md:mb-2">Total Donated</p>
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-primary leading-tight">
+              {displayTotal.toLocaleString()} <span className="text-xs sm:text-sm md:text-base lg:text-lg text-foreground">LKR</span>
             </p>
           </Card>
-          <Card className="p-6 bg-card">
-            <p className="text-muted-foreground text-sm mb-2">Number of Donors</p>
-            <p className="text-4xl font-bold text-accent">{donors.toLocaleString()}</p>
+          <Card className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 bg-card">
+            <p className="text-muted-foreground text-[10px] sm:text-xs md:text-sm mb-0.5 sm:mb-1 md:mb-2">Number of Donors</p>
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-accent leading-tight">{donors.toLocaleString()}</p>
           </Card>
         </div>
       </div>
