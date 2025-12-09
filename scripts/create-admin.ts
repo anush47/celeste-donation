@@ -11,17 +11,22 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
     const args = process.argv.slice(2)
-    if (args.length !== 2) {
+    const username = process.env.ADMIN_USERNAME || args[0]
+    const password = process.env.ADMIN_PASSWORD || args[1]
+
+    if (!username || !password) {
         console.error("Usage: npx tsx scripts/create-admin.ts <username> <password>")
+        console.error("OR set ADMIN_USERNAME and ADMIN_PASSWORD environment variables")
         process.exit(1)
     }
 
-    const [username, password] = args
     const hashedPassword = await bcrypt.hash(password, 10)
 
     try {
-        const admin = await prisma.admin.create({
-            data: {
+        const admin = await prisma.admin.upsert({
+            where: { username },
+            update: { password: hashedPassword },
+            create: {
                 username,
                 password: hashedPassword,
             },

@@ -34,7 +34,7 @@ images:
 
 # Substitutions for configurable values
 substitutions:
-  _SERVICE_NAME: "nextjs-web"
+  _SERVICE_NAME: "celeste-donation"
   _REGION: "asia-south1"
   _TAG: "latest"
 

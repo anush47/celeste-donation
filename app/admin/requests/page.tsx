@@ -11,10 +11,11 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import prisma from "@/lib/db"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, unstable_noStore as noStore } from "next/cache"
 import { Check, Clock, MapPin } from "lucide-react"
 
 export default async function RequestsPage() {
+    noStore()
     const requests = await getHelpRequests()
 
     async function approveRequest(formData: FormData) {
@@ -54,7 +55,7 @@ export default async function RequestsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {requests.map((request) => (
+                            {requests.map((request: any) => (
                                 <TableRow key={request.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
@@ -76,7 +77,7 @@ export default async function RequestsPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
-                                            {request.needTypes.map((need) => (
+                                            {request.needTypes.map((need: any) => (
                                                 <Badge key={need} variant="outline" className="text-xs">
                                                     {need}
                                                 </Badge>

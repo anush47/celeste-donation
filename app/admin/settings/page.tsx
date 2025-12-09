@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import prisma from "@/lib/db"
+import { unstable_noStore as noStore } from "next/cache"
 
 async function getAutoApproveSetting() {
     const setting = await prisma.systemSettings.findUnique({
@@ -11,6 +12,7 @@ async function getAutoApproveSetting() {
 }
 
 export default async function SettingsPage() {
+    noStore()
     const autoApprove = await getAutoApproveSetting()
 
     async function toggleAutoApprove() {

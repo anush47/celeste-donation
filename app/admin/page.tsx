@@ -12,13 +12,16 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { unstable_noStore as noStore } from "next/cache"
+
 
 export default async function AdminDashboard() {
+    noStore()
     const stats = await getDonationStats()
     const allDonations = await getAllDonations()
     const packages = await getPackages()
     const requests = await getHelpRequests()
-    const pendingRequests = requests.filter((r) => !r.approved).length
+    const pendingRequests = requests.filter((r: any) => !r.approved).length
 
     return (
         <div className="space-y-8">
@@ -72,7 +75,7 @@ export default async function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 md:grid-cols-3">
-                        {packages.map((pkg) => (
+                        {packages.map((pkg: any) => (
                             <div key={pkg.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium leading-none">{pkg.name}</p>
@@ -107,7 +110,7 @@ export default async function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {allDonations.map((donation) => (
+                            {allDonations.map((donation: any) => (
                                 <TableRow key={donation.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
