@@ -10,7 +10,7 @@ import { Confetti } from "@/components/confetti"
 import { apiClient } from "@/lib/api-client"
 import { DonationType } from "@prisma/client"
 
-const PREDEFINED_AMOUNTS = [100, 200, 500, 1000, 5000]
+const PREDEFINED_AMOUNTS = [500, 1000, 5000, 10000, 15000]
 
 interface CashDonationTabProps {
   onDonate: (amount: number) => void
@@ -42,7 +42,7 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
     const newErrors: string[] = []
     if (!donorInfo.name.trim()) newErrors.push("Name is required")
     if (!donorInfo.phone.trim()) newErrors.push("Phone number is required")
-    if (!selectedAmount && amount < 1000) newErrors.push("Minimum donation is 1000 LKR")
+    if (!selectedAmount && amount < 500) newErrors.push("Minimum donation is 500 LKR")
     setErrors(newErrors)
     return newErrors.length === 0
   }
@@ -113,8 +113,9 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
     <div className="space-y-8">
       {/* Amount Selection */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-2xl font-bold text-foreground mb-6">Select Donation Amount</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Select Donation Amount</h2>
+        <p className="text-muted-foreground mb-6 text-sm sm:text-base">Choose a preset amount or enter your own</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
           {PREDEFINED_AMOUNTS.map((amt, idx) => (
             <button
               key={amt}
@@ -122,32 +123,44 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
                 setSelectedAmount(amt)
                 setCustomAmount("")
               }}
-              className={`p-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${selectedAmount === amt
-                ? "bg-primary text-primary-foreground shadow-lg scale-105"
-                : "bg-muted text-foreground hover:bg-secondary border border-border"
-                }`}
+              className={`group relative p-4 sm:p-5 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95 ${
+                selectedAmount === amt
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/50 scale-105 ring-2 ring-primary ring-offset-2"
+                  : "bg-gradient-to-br from-card to-muted text-foreground hover:from-primary/10 hover:to-primary/5 border-2 border-border hover:border-primary/50 shadow-md hover:shadow-lg"
+              }`}
               style={{
                 animationDelay: `${idx * 50}ms`,
               }}
             >
-              {amt.toLocaleString()}
+              <span className="relative z-10">
+                {amt.toLocaleString()}
+                <span className="text-xs sm:text-sm font-normal ml-1 opacity-80">LKR</span>
+              </span>
+              {selectedAmount === amt && (
+                <div className="absolute top-1 right-1 w-5 h-5 bg-primary-foreground rounded-full flex items-center justify-center">
+                  <Check className="w-3 h-3 text-primary" />
+                </div>
+              )}
             </button>
           ))}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="custom" className="text-foreground">
-            Custom Amount (min. 1000 LKR)
+          <Label htmlFor="custom" className="text-foreground font-medium">
+            Or enter a custom amount (min. 500 LKR)
           </Label>
-          <Input
-            id="custom"
-            type="number"
-            placeholder="Enter custom amount"
-            value={customAmount}
-            onChange={(e) => handleCustomAmount(e.target.value)}
-            min={1000}
-            className="text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-primary"
-          />
+          <div className="relative">
+            <Input
+              id="custom"
+              type="number"
+              placeholder="Enter custom amount"
+              value={customAmount}
+              onChange={(e) => handleCustomAmount(e.target.value)}
+              min={500}
+              className="text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-primary focus:border-primary text-lg py-6 pl-4 pr-12"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">LKR</span>
+          </div>
         </div>
       </div>
 
@@ -156,9 +169,9 @@ export function CashDonationTab({ onDonate }: CashDonationTabProps) {
         <Button
           onClick={() => setShowForm(true)}
           size="lg"
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all hover:shadow-lg hover:scale-105 active:scale-95"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground animate-in fade-in slide-in-from-bottom-4 duration-500 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-98 text-base sm:text-lg font-semibold py-6 rounded-xl shadow-lg"
         >
-          Proceed with {amount.toLocaleString()} LKR Donation
+          Continue with {amount.toLocaleString()} LKR Donation →
         </Button>
       )}
 
